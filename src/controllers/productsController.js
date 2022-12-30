@@ -36,6 +36,7 @@ const controller = {
 	
 	// Create -  Method to store
 	store: (req, res) => {
+
 		let {name,price,discount,category,description} = req.body
 
 		let productoNuevo = {
@@ -45,12 +46,12 @@ const controller = {
 			discount,
 			category,
 			description,
-			image : "default-image.png",
+			image : req.file.originalname !== "" ? req.file.filename : "default-image.png",
 		}
 		products.push(productoNuevo)
 		guardar(products)
 
-		res.redirect(`/products/${productoNuevo.id}`)
+		res.redirect(`/products`)
 	},
 
 	// Update - Form to edit
@@ -76,6 +77,7 @@ const controller = {
 				producto.discount = discount,
 				producto.category = category,
 				producto.description = description
+				producto.image = req.file ? req.file.filename : producto.image
 			}
 		});
 
@@ -87,6 +89,13 @@ const controller = {
 	destroy : (req, res) => {
 
 		idParams = +req.params.id
+
+		let producto = products.find(product => product.id === idParams)
+		let ruta = fs.existsSync(path.join(__dirname,'..','..','public','images','products',producto.image))
+
+		if (ruta && (producto.image !== "default-image.png")){
+			fs.unlinkSync(path.join(__dirname,'..','..','public','images','products',producto.image))
+		}
 
 		let productosModificados = products.filter(producto => {
 			return producto.id !== idParams
